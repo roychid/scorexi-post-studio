@@ -1,0 +1,2592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScoreXI — Post Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg: #050709;
+            --surface: #0c1018;
+            --surface2: #121820;
+            --border: #1a2332;
+            --border2: #243040;
+            --accent: #00e5a0;
+            --accent2: #0080ff;
+            --red: #ff4757;
+            --gold: #ffd32a;
+            --text: #e8f0fe;
+            --text2: #7a8fa6;
+            --text3: #3d5068;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo span { color: var(--accent); }
+
+        .header-meta {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--text3);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text2);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .app-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-section { margin-bottom: 24px; }
+
+        .sidebar-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: var(--text3);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 0 20px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text2);
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+            border-left: 2px solid transparent;
+        }
+
+        .sidebar-item i { width: 16px; font-size: 12px; }
+        .sidebar-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+        .sidebar-item.active {
+            color: var(--accent);
+            background: rgba(0,229,160,0.06);
+            border-left-color: var(--accent);
+        }
+
+        .sidebar-badge {
+            margin-left: auto;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1px 7px;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: var(--text3);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .page-subtitle {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+
+        .controls-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .control-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: var(--text3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .control-input {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 9px 12px;
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .control-input:focus { border-color: var(--accent); }
+        .control-input option { background: #0c1018; }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-primary { background: var(--accent); color: #050709; }
+        .btn-primary:hover { background: #00c987; transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border2);
+            color: var(--text2);
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        .btn-danger {
+            background: rgba(255,71,87,0.1);
+            border: 1px solid rgba(255,71,87,0.3);
+            color: var(--red);
+        }
+        .btn-danger:hover { background: rgba(255,71,87,0.2); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+        .btn-png {
+            background: linear-gradient(135deg, #00e5a0, #0080ff);
+            color: #050709;
+        }
+        .btn-png:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .btn-json {
+            background: linear-gradient(135deg, #ffd32a, #ff8800);
+            color: #050709;
+        }
+        .btn-json:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .matches-grid { display: grid; gap: 10px; }
+
+        .match-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .match-card:hover {
+            border-color: var(--border2);
+            background: var(--surface2);
+            transform: translateY(-1px);
+        }
+
+        .match-card.selected {
+            border-color: var(--accent);
+            background: rgba(0,229,160,0.04);
+        }
+
+        .match-card-league {
+            font-family: 'Space Mono', monospace;
+            font-size: 8px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .match-card-teams {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mc-team {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .mc-logo {
+            width: 26px;
+            height: 26px;
+            background: var(--surface2);
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text2);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .mc-logo img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+
+        .mc-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mc-score-block {
+            text-align: center;
+            flex-shrink: 0;
+            min-width: 60px;
+        }
+
+        .mc-score {
+            font-family: 'Space Mono', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .mc-time {
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: var(--text3);
+        }
+
+        .mc-status {
+            font-family: 'Space Mono', monospace;
+            font-size: 8px;
+            padding: 2px 7px;
+            border-radius: 8px;
+            font-weight: 700;
+            margin-top: 3px;
+            display: inline-block;
+        }
+
+        .mc-status.live { background: rgba(255,71,87,0.15); color: var(--red); }
+        .mc-status.upcoming { background: rgba(255,211,42,0.12); color: var(--gold); }
+        .mc-status.finished { background: rgba(122,143,166,0.12); color: var(--text2); }
+
+        .match-card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .template-section { margin-top: 24px; }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .templates-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .template-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .template-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+        .template-card.selected { border-color: var(--accent); background: rgba(0,229,160,0.05); }
+
+        .template-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 18px;
+        }
+
+        .template-card.upcoming .template-icon { background: rgba(255,211,42,0.12); color: var(--gold); }
+        .template-card.live .template-icon { background: rgba(255,71,87,0.12); color: var(--red); }
+        .template-card.fulltime .template-icon { background: rgba(0,229,160,0.12); color: var(--accent); }
+        .template-card.stats .template-icon { background: rgba(0,128,255,0.12); color: var(--accent2); }
+
+        .template-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+        .template-desc { font-size: 10px; color: var(--text3); }
+
+        .branding-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .branding-row { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .branding-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5,7,9,0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+        }
+
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px);
+            transition: transform 0.25s;
+        }
+
+        .modal-overlay.open .modal { transform: translateY(0); }
+
+        .modal-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .modal-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .preview-frame-wrap {
+            background: #080c10;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .preview-frame-wrap iframe { width: 100%; height: 580px; border: none; display: block; }
+
+        .loading-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: var(--text2);
+            font-size: 13px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
+        .empty-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
+        .empty-title { font-family: 'Syne', sans-serif; font-size: 16px; color: var(--text2); margin-bottom: 8px; }
+        .empty-text { font-size: 12px; line-height: 1.6; }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 260px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { border-color: rgba(0,229,160,0.4); }
+        .toast.error { border-color: rgba(255,71,87,0.4); }
+        .toast i { font-size: 14px; }
+        .toast.success i { color: var(--accent); }
+        .toast.error i { color: var(--red); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .api-key-banner {
+            background: rgba(255,211,42,0.05);
+            border: 1px solid rgba(255,211,42,0.2);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .api-key-banner i { color: var(--gold); font-size: 14px; flex-shrink: 0; }
+        .api-key-banner-text { font-size: 12px; color: var(--text2); flex: 1; }
+
+        .stats-strip { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+
+        .stat-chip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-chip-val {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-chip-label { font-size: 10px; color: var(--text3); }
+
+        .history-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .history-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--surface2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .history-info { flex: 1; min-width: 0; }
+        .history-match { font-size: 13px; font-weight: 600; color: var(--text); }
+        .history-meta { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { padding: 16px; }
+            .controls-bar { flex-direction: column; }
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(26,35,50,0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(26,35,50,0.4) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app-layout, header { position: relative; z-index: 1; }
+
+        .color-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .color-swatch input[type="color"] {
+            width: 140%;
+            height: 140%;
+            border: none;
+            cursor: pointer;
+            transform: translate(-14%, -14%);
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ===== SCOREXI VISUAL REFRESH — presentation only ===== */
+        :root {
+            --bg: #121826;
+            --surface: #1a2130;
+            --surface2: #20293a;
+            --border: #2a3346;
+            --border2: #354158;
+            --accent: #60a5fa;
+            --accent2: #60a5fa;
+            --red: #fb7185;
+            --gold: #fbbf24;
+            --text: #e8edf5;
+            --text2: #8892a8;
+            --text3: #6b7a93;
+        }
+
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            background: var(--bg);
+        }
+
+        body::before { display: none; }
+
+        header {
+            height: 68px;
+            background: rgba(26,33,48,.96);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px;
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 18px;
+            letter-spacing: -0.35px;
+        }
+        .logo span { color: var(--accent); font-weight: 700; }
+        .header-meta, .sidebar-label, .control-label,
+        .stat-chip-val, .match-card-league, .mc-score, .mc-time, .mc-status {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+
+        .sidebar {
+            width: 232px;
+            background: var(--surface);
+            padding: 24px 12px;
+        }
+        .sidebar-label { padding: 0 10px; color: var(--text3); }
+        .sidebar-item {
+            border-left: 0;
+            border-radius: 10px;
+            margin: 3px 0;
+            padding: 10px 12px;
+        }
+        .sidebar-item.active {
+            color: var(--text);
+            background: #253149;
+            box-shadow: inset 0 0 0 1px #34435d;
+        }
+        .sidebar-item.active i { color: var(--accent); }
+
+        .main-content {
+            padding: 30px;
+            max-width: 1260px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .page-title {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 27px;
+            font-weight: 800;
+            letter-spacing: -0.7px;
+        }
+        .page-subtitle { color: var(--text2); margin-top: 6px; }
+
+        .controls-bar, .branding-panel, .api-key-banner {
+            background: var(--surface);
+            border-color: var(--border);
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        }
+
+        .control-input {
+            background: #151c2a;
+            border-color: var(--border);
+            border-radius: 10px;
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .control-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(96,165,250,.12);
+        }
+
+        .btn {
+            border-radius: 10px;
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .btn-primary, .btn-png {
+            background: var(--accent);
+            color: #0f172a;
+        }
+        .btn-primary:hover, .btn-png:hover {
+            background: #7bb5fb;
+            opacity: 1;
+        }
+        .btn-json { background: #fbbf24; color: #111827; }
+
+        .match-card {
+            background: var(--surface);
+            border-color: var(--border);
+            border-radius: 16px;
+            padding: 16px 18px;
+            box-shadow: 0 5px 18px rgba(0,0,0,.08);
+        }
+        .match-card:hover {
+            background: #1e2738;
+            border-color: #3a4860;
+            transform: translateY(-1px);
+        }
+        .match-card.selected {
+            border-color: var(--accent);
+            background: rgba(96,165,250,.08);
+            box-shadow: 0 0 0 2px rgba(96,165,250,.08);
+        }
+        .mc-logo {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            width: 34px;
+            height: 34px;
+        }
+        .mc-logo img { padding: 0; }
+        .mc-status.live { background: rgba(251,113,133,.12); color: var(--red); }
+        .mc-status.upcoming { background: rgba(96,165,250,.12); color: var(--accent); }
+        .mc-status.finished { background: rgba(52,211,153,.12); color: #34d399; }
+
+        .section-title {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-size: 13px;
+        }
+        .template-card {
+            background: var(--surface);
+            border-color: var(--border);
+            border-radius: 14px;
+        }
+        .template-card.selected {
+            border-color: var(--accent);
+            background: rgba(96,165,250,.08);
+        }
+        .template-card .template-icon {
+            background: transparent !important;
+            border: 1px solid var(--border);
+            color: var(--text2) !important;
+        }
+        .template-card.selected .template-icon {
+            color: var(--accent) !important;
+            border-color: rgba(96,165,250,.5);
+        }
+
+        .stat-chip, .history-item {
+            background: #151c2a;
+            border-color: var(--border);
+        }
+        .stat-chip-val { color: var(--accent); }
+
+        .modal-overlay { background: rgba(9,13,22,.82); backdrop-filter: blur(8px); }
+        .modal {
+            background: var(--surface);
+            border-color: var(--border);
+            border-radius: 20px;
+        }
+        .preview-frame-wrap { background: #121826; border-color: var(--border); }
+
+        @media (max-width: 768px) {
+            header { padding: 0 16px; }
+            .header-meta > div:nth-child(2), #reqCounter { display:none; }
+            .main-content { padding: 18px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <i class="fas fa-futbol" style="color:var(--accent)"></i>
+        ScoreXI <span>Post Studio</span>
+    </div>
+    <div class="header-meta">
+        <div class="api-status">
+            <div class="status-dot" id="apiDot"></div>
+            <span id="apiStatusText">Not connected</span>
+        </div>
+        <div style="color:var(--text3)">|</div>
+        <span id="reqCounter">0 / 100 req today</span>
+    </div>
+</header>
+
+<div class="app-layout">
+
+    <nav class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Workspace</div>
+            <div class="sidebar-item active" data-tab="generate" onclick="switchTab('generate', this)">
+                <i class="fas fa-wand-magic-sparkles"></i> Generate
+            </div>
+            <div class="sidebar-item" data-tab="history" onclick="switchTab('history', this)">
+                <i class="fas fa-clock-rotate-left"></i> History
+                <span class="sidebar-badge" id="historyBadge">0</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Settings</div>
+            <div class="sidebar-item" data-tab="branding" onclick="switchTab('branding', this)">
+                <i class="fas fa-palette"></i> My Brand
+            </div>
+            <div class="sidebar-item" data-tab="apikeys" onclick="switchTab('apikeys', this)">
+                <i class="fas fa-key"></i> API Keys
+            </div>
+            <div class="sidebar-item" data-tab="inspector" onclick="switchTab('inspector', this)">
+                <i class="fas fa-magnifying-glass-chart"></i> API Inspector
+            </div>
+        </div>
+        <div class="sidebar-section" style="margin-top:auto; padding-top: 20px;">
+            <div class="sidebar-label">Quick Stats</div>
+            <div style="padding: 0 16px;">
+                <div class="stat-chip" style="margin-bottom:8px; width:100%">
+                    <div class="stat-chip-val" id="sidebarGenerated">0</div>
+                    <div class="stat-chip-label">cards generated</div>
+                </div>
+                <div class="stat-chip" style="width:100%">
+                    <div class="stat-chip-val" id="sidebarDownloaded">0</div>
+                    <div class="stat-chip-label">downloaded</div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+
+        <!-- TAB: GENERATE -->
+        <div id="tab-generate" class="tab-content active">
+
+            <div class="api-key-banner" id="apiKeyBanner">
+                <i class="fas fa-triangle-exclamation"></i>
+                <div class="api-key-banner-text">
+                    Add your <strong>Highlightly API key</strong> to fetch live match data.<br>
+                    You can also use Demo Mode to try templates with sample data.
+                </div>
+                <button class="btn btn-outline" onclick="switchTab('apikeys', document.querySelector('[data-tab=apikeys]'))" style="font-size:11px; padding:7px 12px;">
+                    <i class="fas fa-key"></i> Add Key
+                </button>
+                <button class="btn btn-outline" onclick="loadDemoData()" style="font-size:11px; padding:7px 12px;">
+                    <i class="fas fa-flask"></i> Demo
+                </button>
+            </div>
+
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Generate Content</div>
+                    <div class="page-subtitle">Fetch a match → pick a template → download</div>
+                </div>
+                <button class="btn btn-primary" onclick="fetchMatches()" id="fetchBtn">
+                    <i class="fas fa-satellite-dish"></i> Fetch Matches
+                </button>
+            </div>
+
+            <div class="controls-bar">
+                <div class="control-group">
+                    <label class="control-label">Date</label>
+                    <input type="date" class="control-input" id="dateInput">
+                </div>
+                <div class="control-group">
+                    <label class="control-label">League (optional)</label>
+                    <input type="text" class="control-input" id="leagueInput" placeholder="e.g. Premier League">
+                </div>
+                <div class="control-group" style="max-width:160px">
+                    <label class="control-label">Status</label>
+                    <select class="control-input" id="statusFilter">
+                        <option value="">All</option>
+                        <option value="live">Live</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="finished">Finished</option>
+                    </select>
+                </div>
+                <div class="control-group" style="max-width:120px">
+                    <label class="control-label">Limit</label>
+                    <select class="control-input" id="limitInput">
+                        <option value="20">20</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="matchesArea">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-satellite-dish"></i></div>
+                    <div class="empty-title">No matches loaded</div>
+                    <div class="empty-text">Click "Fetch Matches" or use Demo Mode<br>to load football match data.</div>
+                </div>
+            </div>
+
+            <div id="buildSection" style="display:none">
+                <div id="rawDebugPanel" style="display:none"></div>
+                <div id="matchDataPreview" style="display:none; margin-bottom:20px"></div>
+
+                <div class="template-section">
+                    <div class="section-title"><i class="fas fa-layer-group" style="color:var(--accent2)"></i> Choose Template</div>
+                    <div class="templates-row">
+                        <div class="template-card upcoming" id="tpl-upcoming" onclick="selectTemplate('upcoming')">
+                            <div class="template-icon"><i class="fas fa-clock"></i></div>
+                            <div class="template-name">Match Preview</div>
+                            <div class="template-desc">Pre-match card with form &amp; fan vote</div>
+                        </div>
+                        <div class="template-card live" id="tpl-live" onclick="selectTemplate('live')">
+                            <div class="template-icon"><i class="fas fa-circle"></i></div>
+                            <div class="template-name">Live Score</div>
+                            <div class="template-desc">Live match with events feed</div>
+                        </div>
+                        <div class="template-card fulltime" id="tpl-fulltime" onclick="selectTemplate('fulltime')">
+                            <div class="template-icon"><i class="fas fa-whistle"></i></div>
+                            <div class="template-name">Full Time</div>
+                            <div class="template-desc">Post-match result card with events</div>
+                        </div>
+                        <div class="template-card stats" id="tpl-stats" onclick="selectTemplate('stats')">
+                            <div class="template-icon"><i class="fas fa-chart-bar"></i></div>
+                            <div class="template-name">Match Stats</div>
+                            <div class="template-desc">Deep stats breakdown card</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="branding-panel">
+                    <div class="section-title"><i class="fas fa-pen-nib" style="color:var(--gold)"></i> Branding</div>
+                    <div class="branding-row">
+                        <div class="branding-field">
+                            <label class="control-label">Handle / Watermark</label>
+                            <input type="text" class="control-input" id="bHandleInline" placeholder="@scorexifootball">
+                        </div>
+                        <div class="branding-field">
+                            <label class="control-label">Tagline</label>
+                            <input type="text" class="control-input" id="bTaglineInline" placeholder="Football. Scores. Stories.">
+                        </div>
+                        <div class="branding-field" style="max-width:120px">
+                            <label class="control-label">Accent Color</label>
+                            <div class="color-swatch">
+                                <input type="color" id="bColorInline" value="#00e5a0">
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" id="generateBtn" onclick="openPreview()" disabled>
+                            <i class="fas fa-eye"></i> Preview &amp; Download HTML
+                        </button>
+                        <button class="btn btn-png" id="pngBtn" onclick="exportAsPNG()" disabled>
+                            <i class="fas fa-camera"></i> Export as PNG
+                        </button>
+                        <button class="btn btn-outline" onclick="clearSelection()">
+                            <i class="fas fa-xmark"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB: HISTORY -->
+        <div id="tab-history" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">Generated History</div>
+                    <div class="page-subtitle">All cards you've created this session</div>
+                </div>
+                <button class="btn btn-danger" onclick="clearHistory()">
+                    <i class="fas fa-trash"></i> Clear
+                </button>
+            </div>
+            <div id="historyList">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-clock-rotate-left"></i></div>
+                    <div class="empty-title">No history yet</div>
+                    <div class="empty-text">Generated cards will appear here.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: BRANDING -->
+        <div id="tab-branding" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">My Brand</div>
+                    <div class="page-subtitle">These defaults appear on every card</div>
+                </div>
+                <button class="btn btn-primary" onclick="saveBranding()"><i class="fas fa-save"></i> Save</button>
+            </div>
+            <div class="controls-bar" style="flex-direction:column; align-items:stretch; gap:16px">
+                <div class="branding-row">
+                    <div class="branding-field">
+                        <label class="control-label">Page / Brand Name</label>
+                        <input type="text" class="control-input" id="bBrandName" placeholder="ScoreXI Football">
+                    </div>
+                    <div class="branding-field">
+                        <label class="control-label">Handle</label>
+                        <input type="text" class="control-input" id="bHandle" placeholder="@scorexifootball">
+                    </div>
+                    <div class="branding-field">
+                        <label class="control-label">Tagline</label>
+                        <input type="text" class="control-input" id="bTagline" placeholder="Football. Scores. Stories.">
+                    </div>
+                </div>
+                <div class="branding-row">
+                    <div class="branding-field" style="max-width:140px">
+                        <label class="control-label">Primary Color</label>
+                        <div class="color-swatch" style="width:100%; height:36px">
+                            <input type="color" id="bPrimaryColor" value="#00e5a0" style="width:110%; height:110%; transform:translate(-5%,-5%)">
+                        </div>
+                    </div>
+                    <div class="branding-field" style="max-width:140px">
+                        <label class="control-label">Secondary Color</label>
+                        <div class="color-swatch" style="width:100%; height:36px">
+                            <input type="color" id="bSecondaryColor" value="#0080ff" style="width:110%; height:110%; transform:translate(-5%,-5%)">
+                        </div>
+                    </div>
+                    <div class="branding-field">
+                        <label class="control-label">Website / Link</label>
+                        <input type="text" class="control-input" id="bWebsite" placeholder="yoursite.com">
+                    </div>
+                </div>
+                <p style="font-size:11px; color:var(--text3); margin-top:4px">
+                    <i class="fas fa-info-circle"></i> Branding is injected into the footer of every generated card.
+                </p>
+            </div>
+        </div>
+
+        <!-- TAB: API KEYS -->
+        <div id="tab-apikeys" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">API Configuration</div>
+                    <div class="page-subtitle">Connect Highlightly Football API</div>
+                </div>
+            </div>
+            <div class="controls-bar" style="flex-direction:column; align-items:stretch; gap:16px">
+                <div class="branding-field">
+                    <label class="control-label">Highlightly / RapidAPI Key</label>
+                    <input type="password" class="control-input" id="apiKeyInput" placeholder="Paste your API key here…" autocomplete="off">
+                </div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap">
+                    <button class="btn btn-primary" onclick="saveApiKey()"><i class="fas fa-save"></i> Save Key</button>
+                    <button class="btn btn-outline" onclick="testApiKey()"><i class="fas fa-flask"></i> Test Connection</button>
+                    <button class="btn btn-danger" onclick="clearApiKey()"><i class="fas fa-trash"></i> Remove Key</button>
+                </div>
+                <div id="apiTestResult" style="font-size:12px; color:var(--text2); display:none"></div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:16px; font-size:12px; color:var(--text2); line-height:1.7">
+                    <strong style="color:var(--text)">How to get your key:</strong><br>
+                    1. Sign up at <strong>highlightly.net</strong> or <strong>rapidapi.com</strong><br>
+                    2. Subscribe to the Football Highlights API<br>
+                    3. Copy your <code style="background:var(--bg);padding:1px 5px;border-radius:4px;color:var(--accent)">x-rapidapi-key</code> from the dashboard<br>
+                    4. Paste it above and save<br><br>
+                    <strong style="color:var(--gold)">Free plan:</strong> 100 requests/day · Most endpoints available<br>
+                    <strong style="color:var(--text3)">Key is stored locally in your browser only.</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: API INSPECTOR -->
+        <div id="tab-inspector" class="tab-content">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">API Inspector</div>
+                    <div class="page-subtitle">Probe any endpoint and see the raw JSON response</div>
+                </div>
+            </div>
+            <div class="controls-bar" style="flex-direction:column;align-items:stretch;gap:14px">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+                    <div class="control-group" style="min-width:200px">
+                        <label class="control-label">Endpoint</label>
+                        <select class="control-input" id="inspectorEndpoint" onchange="updateInspectorUrl()">
+                            <option value="/matches/{id}">GET /matches/{id}</option>
+                            <option value="/statistics/{id}">GET /statistics/{id}</option>
+                            <option value="/matches">GET /matches (by date)</option>
+                            <option value="/events/{id}">GET /events/{id}</option>
+                            <option value="/lineups/{id}">GET /lineups/{id}</option>
+                            <option value="/highlights">GET /highlights</option>
+                        </select>
+                    </div>
+                    <div class="control-group" style="min-width:200px">
+                        <label class="control-label">ID / Param</label>
+                        <input type="text" class="control-input" id="inspectorParam" placeholder="Match ID or date (YYYY-MM-DD)">
+                    </div>
+                    <button class="btn btn-primary" onclick="runInspector()"><i class="fas fa-play"></i> Run</button>
+                </div>
+                <div style="font-size:11px;color:var(--text3)" id="inspectorUrlPreview">URL: —</div>
+            </div>
+            <div id="inspectorResult" style="margin-top:4px">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-terminal"></i></div>
+                    <div class="empty-title">Run a request to see the response</div>
+                    <div class="empty-text">Paste a match ID from the Generate tab, pick an endpoint, hit Run.</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Preview Card</div>
+            <div class="modal-close" onclick="closePreview()"><i class="fas fa-xmark"></i></div>
+        </div>
+        <div class="modal-body">
+            <div class="preview-frame-wrap">
+                <iframe id="previewIframe" src="about:blank"></iframe>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closePreview()">Close</button>
+            <button class="btn btn-primary" onclick="downloadCard()" id="downloadBtn">
+                <i class="fas fa-download"></i> Download HTML
+            </button>
+            <button class="btn btn-png" onclick="downloadPNGFromPreview()" id="downloadPngBtn">
+                <i class="fas fa-camera"></i> Download PNG
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JSON OUTPUT MODAL -->
+<div class="modal-overlay" id="jsonOutputModal">
+    <div class="modal" style="max-width: 800px;">
+        <div class="modal-header">
+            <div class="modal-title">📄 API JSON Response</div>
+            <div class="modal-close" onclick="closeJsonModal()"><i class="fas fa-xmark"></i></div>
+        </div>
+        <div class="modal-body" style="max-height: 70vh;">
+            <pre id="jsonContent" style="background: #0a0f16; padding: 16px; border-radius: 12px; overflow: auto; font-family: 'Space Mono', monospace; font-size: 11px; color: #e8f0fe; margin: 0; white-space: pre-wrap; word-wrap: break-word;"></pre>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="copyJsonToClipboard()"><i class="fas fa-copy"></i> Copy JSON</button>
+            <button class="btn btn-primary" onclick="closeJsonModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden iframe used exclusively for PNG rendering — never removed from DOM -->
+<iframe id="pngRenderFrame" style="position:fixed;top:-9999px;left:-9999px;width:540px;height:900px;border:none;visibility:hidden;pointer-events:none;" src="about:blank"></iframe>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var state = {
+    apiKey: localStorage.getItem('fp_apikey') || '',
+    branding: JSON.parse(localStorage.getItem('fp_branding') || '{}'),
+    history: JSON.parse(localStorage.getItem('fp_history') || '[]'),
+    matches: [],
+    selectedMatch: null,
+    selectedTemplate: null,
+    reqCount: parseInt(localStorage.getItem('fp_reqcount') || '0'),
+    reqDate: localStorage.getItem('fp_reqdate') || '',
+    generatedCount: parseInt(localStorage.getItem('fp_gencount') || '0'),
+    downloadCount: parseInt(localStorage.getItem('fp_dlcount') || '0'),
+    _rawMatchDebug: null,
+    _rawStatsDebug: null,
+};
+
+var currentCardHTML = '';
+var currentJsonData = null;
+
+var today = new Date().toDateString();
+if (state.reqDate !== today) {
+    state.reqCount = 0;
+    localStorage.setItem('fp_reqcount', '0');
+    localStorage.setItem('fp_reqdate', today);
+}
+
+// ── JSON MODAL FUNCTIONS ──────────────────────────────────────────────────────
+function showJsonOutput(data) {
+    const formatted = JSON.stringify(data, null, 2);
+    document.getElementById('jsonContent').textContent = formatted;
+    currentJsonData = data;
+    document.getElementById('jsonOutputModal').classList.add('open');
+}
+
+function closeJsonModal() {
+    document.getElementById('jsonOutputModal').classList.remove('open');
+}
+
+function copyJsonToClipboard() {
+    if (currentJsonData) {
+        navigator.clipboard.writeText(JSON.stringify(currentJsonData, null, 2));
+        showToast('JSON copied to clipboard!', 'success');
+    }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+    loadBrandingUI();
+
+    var inspParam = document.getElementById('inspectorParam');
+    if (inspParam) inspParam.addEventListener('input', updateInspectorUrl);
+    updateInspectorUrl();
+
+    if (state.apiKey) {
+        document.getElementById('apiKeyInput').value = state.apiKey;
+        updateApiStatus(true);
+    }
+
+    updateCounters();
+    renderHistory();
+    syncBrandingToInline();
+
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        if (state.matches.length) renderMatches();
+    });
+
+    document.getElementById('previewModal').addEventListener('click', function(e) {
+        if (e.target === this) closePreview();
+    });
+});
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.sidebar-item').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById('tab-' + name).classList.add('active');
+    if (el) el.classList.add('active');
+}
+
+// ── API KEY ───────────────────────────────────────────────────────────────────
+function saveApiKey() {
+    var key = document.getElementById('apiKeyInput').value.trim();
+    state.apiKey = key;
+    localStorage.setItem('fp_apikey', key);
+    updateApiStatus(!!key);
+    if (key) {
+        showToast('API key saved!', 'success');
+        document.getElementById('apiKeyBanner').style.display = 'none';
+    }
+}
+
+function clearApiKey() {
+    state.apiKey = '';
+    document.getElementById('apiKeyInput').value = '';
+    localStorage.removeItem('fp_apikey');
+    updateApiStatus(false);
+    showToast('API key removed', 'error');
+}
+
+async function testApiKey() {
+    var key = document.getElementById('apiKeyInput').value.trim();
+    if (!key) { showToast('Enter an API key first', 'error'); return; }
+    var el = document.getElementById('apiTestResult');
+    el.style.display = 'block';
+    el.innerHTML = '<span class="spinner"></span> Testing...';
+    try {
+        var res = await fetch('https://soccer.highlightly.net/countries?name=France', {
+            headers: { 'x-rapidapi-key': key }
+        });
+        if (res.ok) {
+            el.innerHTML = '<i class="fas fa-check-circle" style="color:var(--accent)"></i> Connection successful!';
+            showToast('API connected!', 'success');
+        } else {
+            el.innerHTML = '<i class="fas fa-xmark-circle" style="color:var(--red)"></i> Error ' + res.status + ': Invalid key or rate limited';
+        }
+    } catch(e) {
+        el.innerHTML = '<i class="fas fa-xmark-circle" style="color:var(--red)"></i> Network error — check your connection';
+    }
+}
+
+function updateApiStatus(connected) {
+    document.getElementById('apiDot').style.background = connected ? 'var(--accent)' : 'var(--red)';
+    document.getElementById('apiStatusText').textContent = connected ? 'API connected' : 'Not connected';
+    if (connected) document.getElementById('apiKeyBanner').style.display = 'none';
+}
+
+// ── FETCH MATCHES (MODIFIED TO SHOW JSON) ─────────────────────────────────────
+async function fetchMatches() {
+    if (!state.apiKey) { showToast('Add your API key first — or use Demo Mode', 'error'); return; }
+    if (state.reqCount >= 100) { showToast('Daily request limit (100) reached', 'error'); return; }
+
+    var date = document.getElementById('dateInput').value;
+    var league = document.getElementById('leagueInput').value.trim();
+    var limit = document.getElementById('limitInput').value;
+
+    if (!date) { showToast('Please select a date', 'error'); return; }
+
+    var area = document.getElementById('matchesArea');
+    area.innerHTML = '<div class="loading-bar"><span class="spinner"></span> Fetching matches from Highlightly API…</div>';
+    document.getElementById('fetchBtn').disabled = true;
+
+    try {
+        var url = 'https://soccer.highlightly.net/matches?date=' + date + '&limit=' + limit;
+        if (league) url += '&leagueName=' + encodeURIComponent(league);
+
+        var res = await fetch(url, { headers: { 'x-rapidapi-key': state.apiKey } });
+        incrementReq();
+        if (!res.ok) throw new Error('API error ' + res.status);
+
+        var data = await res.json();
+        
+        // Show JSON output in modal
+        showJsonOutput(data);
+        
+        state.matches = data.data || data || [];
+        renderMatches();
+        showToast('Loaded ' + state.matches.length + ' matches', 'success');
+    } catch(e) {
+        area.innerHTML = '<div class="loading-bar" style="color:var(--red)"><i class="fas fa-xmark-circle"></i> ' + e.message + '</div>';
+        showToast('Failed to fetch matches', 'error');
+    } finally {
+        document.getElementById('fetchBtn').disabled = false;
+    }
+}
+
+function renderMatches() {
+    var filter = document.getElementById('statusFilter').value;
+    var matches = state.matches;
+
+    if (filter) {
+        matches = matches.filter(function(m) {
+            var s = (m.state && m.state.description ? m.state.description : '').toLowerCase();
+            if (filter === 'live') return s.includes('half') || s.includes('progress') || s.includes('extra') || s.includes('penalty');
+            if (filter === 'upcoming') return s.includes('not started');
+            if (filter === 'finished') return s.includes('finished') || s.includes('awarded');
+            return true;
+        });
+    }
+
+    var area = document.getElementById('matchesArea');
+    if (!matches.length) {
+        area.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-magnifying-glass"></i></div><div class="empty-title">No matches found</div><div class="empty-text">Try a different date or league name.</div></div>';
+        return;
+    }
+
+    area.innerHTML = '<div class="matches-grid">' + matches.map(function(m, i) { return renderMatchCard(m, i); }).join('') + '</div>';
+}
+
+function renderMatchCard(m, i) {
+    var home = m.homeTeam || {};
+    var away = m.awayTeam || {};
+    var s = m.state || {};
+    var league = m.league || {};
+    var sc = extractScore(m);
+    var homeScore = sc != null ? sc.home : '';
+    var awayScore = sc != null ? sc.away : '';
+    var desc = s.description || 'Unknown';
+    var isLive = desc.toLowerCase().includes('half') || desc.toLowerCase().includes('progress');
+    var isFinished = desc.toLowerCase().includes('finished') || desc.toLowerCase().includes('awarded');
+    var statusClass = isLive ? 'live' : isFinished ? 'finished' : 'upcoming';
+    var homeLogo = home.logo ? '<img src="' + home.logo + '" onerror="this.style.display=\'none\'">' : '';
+    var awayLogo = away.logo ? '<img src="' + away.logo + '" onerror="this.style.display=\'none\'">' : '';
+    var kickoff = m.date ? new Date(m.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '--:--';
+    var scoreDisplay = (isLive || isFinished) ? (homeScore + ' - ' + awayScore) : kickoff;
+
+    return '<div class="match-card" id="mc-' + i + '" onclick="selectMatch(' + i + ')">' +
+        '<div style="flex:1;min-width:0">' +
+            '<div class="match-card-league">' + (league.name || 'League') + '</div>' +
+            '<div class="match-card-teams">' +
+                '<div class="mc-team" style="flex:1;min-width:0">' +
+                    '<div class="mc-logo">' + homeLogo + '<span style="' + (homeLogo ? 'display:none' : '') + '">' + ((home.name||'H')[0]) + '</span></div>' +
+                    '<div class="mc-name">' + (home.name || 'Home') + '</div>' +
+                '</div>' +
+                '<div class="mc-score-block">' +
+                    '<div class="mc-score">' + scoreDisplay + '</div>' +
+                    '<div class="mc-status ' + statusClass + '">' + (isLive ? '● LIVE' : isFinished ? 'FT' : 'UPCOMING') + '</div>' +
+                '</div>' +
+                '<div class="mc-team" style="flex:1;min-width:0;justify-content:flex-end">' +
+                    '<div class="mc-name" style="text-align:right">' + (away.name || 'Away') + '</div>' +
+                    '<div class="mc-logo">' + awayLogo + '<span style="' + (awayLogo ? 'display:none' : '') + '">' + ((away.name||'A')[0]) + '</span></div>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="match-card-actions">' +
+            '<div class="icon-btn" title="Select this match" onclick="event.stopPropagation();selectMatch(' + i + ')"><i class="fas fa-arrow-right"></i></div>' +
+        '</div>' +
+    '</div>';
+}
+
+async function selectMatch(i) {
+    var basicMatch = state.matches[i];
+    state.selectedMatch = basicMatch;
+
+    document.querySelectorAll('.match-card').forEach(function(c, j) {
+        c.classList.toggle('selected', j === i);
+    });
+    document.getElementById('buildSection').style.display = 'block';
+    document.getElementById('buildSection').scrollIntoView({behavior:'smooth', block:'start'});
+
+    renderMatchDataPreview(null, true);
+
+    if (state.apiKey && basicMatch.id) {
+        try {
+            var matchRes = await fetch('https://soccer.highlightly.net/matches/' + basicMatch.id, {
+                headers: { 'x-rapidapi-key': state.apiKey }
+            });
+            incrementReq();
+            if (matchRes.ok) {
+                var matchData = await matchRes.json();
+                state._rawMatchDebug = matchData;
+                var fullMatch = Array.isArray(matchData) ? matchData[0] : matchData;
+                if (fullMatch) {
+                    state.selectedMatch = Object.assign({}, basicMatch, fullMatch, {
+                        homeTeam: fullMatch.homeTeam || basicMatch.homeTeam,
+                        awayTeam: fullMatch.awayTeam || basicMatch.awayTeam,
+                        league: fullMatch.league || basicMatch.league,
+                    });
+                    showRawDebug(state.selectedMatch);
+                }
+            } else {
+                showToast('Match detail error ' + matchRes.status, 'error');
+            }
+
+            var statsRes = await fetch('https://soccer.highlightly.net/statistics/' + basicMatch.id, {
+                headers: { 'x-rapidapi-key': state.apiKey }
+            });
+            incrementReq();
+            if (statsRes.ok) {
+                var statsData = await statsRes.json();
+                state._rawStatsDebug = statsData;
+                if (Array.isArray(statsData) && statsData.length) {
+                    state.selectedMatch.statistics = statsData;
+                }
+            }
+
+            showToast('Loaded: ' + (state.selectedMatch.homeTeam && state.selectedMatch.homeTeam.name ? state.selectedMatch.homeTeam.name : '?') + ' vs ' + (state.selectedMatch.awayTeam && state.selectedMatch.awayTeam.name ? state.selectedMatch.awayTeam.name : '?'), 'success');
+        } catch(e) {
+            showToast('Fetch error: ' + e.message, 'error');
+        }
+    } else if (!state.apiKey) {
+        injectDemoDetail(state.selectedMatch);
+        showToast('Demo data loaded', 'success');
+    }
+
+    renderMatchDataPreview(state.selectedMatch, false);
+    checkGenerateReady();
+}
+
+function injectDemoDetail(match) {
+    var home = match.homeTeam || {};
+    var away = match.awayTeam || {};
+    var desc = (match.state && match.state.description ? match.state.description : '').toLowerCase();
+    var isFinished = desc.includes('finish');
+    var isLive = desc.includes('half');
+
+    if (!match.state) match.state = {};
+    if (isFinished || isLive) {
+        match.state.score = match.state.score || { home: 2, away: 1 };
+    }
+
+    match.events = [
+        { type:'Goal', time:'12', player:'M. Silva', assist:'J. Costa', team: home },
+        { type:'Yellow Card', time:'28', player:'T. Brown', team: away },
+        { type:'Goal', time:'45', player:'R. Ferreira', assist: null, team: home },
+        { type:'Substitution', time:'56', player:'N. Gomez', substituted:'P. Lopes', team: away },
+        { type:'Goal', time:'71', player:'A. Torres', assist:'E. Diaz', team: away },
+        { type:'Red Card', time:'88', player:'C. Mbaye', team: away },
+    ];
+
+    match.statistics = [
+        { team: home, statistics: [
+            { type:'Ball Possession', value:'58%' }, { type:'Shots on Goal', value:7 },
+            { type:'Total Shots', value:16 }, { type:'Corner Kicks', value:7 },
+            { type:'Fouls', value:11 }, { type:'Yellow Cards', value:1 },
+            { type:'Offsides', value:2 }, { type:'Passes Accurate', value:412 },
+        ]},
+        { team: away, statistics: [
+            { type:'Ball Possession', value:'42%' }, { type:'Shots on Goal', value:4 },
+            { type:'Total Shots', value:10 }, { type:'Corner Kicks', value:4 },
+            { type:'Fouls', value:14 }, { type:'Yellow Cards', value:3 },
+            { type:'Offsides', value:4 }, { type:'Passes Accurate', value:298 },
+        ]},
+    ];
+}
+
+// ── RAW DEBUG ─────────────────────────────────────────────────────────────────
+function showRawDebug(match) {
+    var container = document.getElementById('rawDebugPanel');
+    if (!container) return;
+
+    var scorePaths = [
+        ['state.score.current (string)', match.state && match.state.score ? match.state.score.current : undefined, null],
+        ['state.score.home / state.score.away', match.state && match.state.score ? match.state.score.home : undefined, match.state && match.state.score ? match.state.score.away : undefined],
+        ['state.homeScore / state.awayScore', match.state ? match.state.homeScore : undefined, match.state ? match.state.awayScore : undefined],
+        ['homeScore / awayScore (top level)', match.homeScore, match.awayScore],
+        ['score.home / score.away', match.score ? match.score.home : undefined, match.score ? match.score.away : undefined],
+        ['goals.home / goals.away', match.goals ? match.goals.home : undefined, match.goals ? match.goals.away : undefined],
+        ['result.home / result.away', match.result ? match.result.home : undefined, match.result ? match.result.away : undefined],
+        ['home.score / away.score', match.homeTeam ? match.homeTeam.score : undefined, match.awayTeam ? match.awayTeam.score : undefined],
+    ];
+
+    var scoreRows = scorePaths.map(function(arr) {
+        var path = arr[0], h = arr[1], a = arr[2];
+        return '<tr style="' + (h != null ? 'color:#00e5a0;font-weight:700' : 'color:#3d5068') + '">' +
+            '<td style="padding:2px 8px 2px 0;font-family:monospace;font-size:10px">' + path + '</td>' +
+            '<td style="padding:2px 8px;font-size:10px">' + (h != null ? h : 'undefined') + '</td>' +
+            '<td style="padding:2px 0;font-size:10px">' + (a != null ? a : 'undefined') + '</td>' +
+            '</tr>';
+    }).join('');
+
+    var stats = match.statistics || [];
+    var statsInfo = stats.length
+        ? 'Found ' + stats.length + ' team entries. First: ' + (stats[0] && stats[0].team ? stats[0].team.name || '?' : '?') + ', count: ' + (stats[0] && stats[0].statistics ? stats[0].statistics.length : 0)
+        : 'No statistics array found';
+
+    var events = match.events || [];
+    var stateStr = JSON.stringify(match.state || {}, null, 2);
+
+    container.style.display = 'block';
+    container.innerHTML =
+        '<div style="background:#0a1520;border:1px solid #1a2332;border-radius:12px;padding:14px 16px;font-size:11px;margin-bottom:16px">' +
+        '<div style="color:#ffd32a;font-weight:700;margin-bottom:10px;font-size:12px">&#128269; API Debug — field mapping</div>' +
+        '<div style="color:#7a8fa6;margin-bottom:6px">Score paths (green = has value):</div>' +
+        '<table style="border-collapse:collapse;margin-bottom:12px"><tbody>' + scoreRows + '</tbody></table>' +
+        '<div style="color:#7a8fa6;margin-bottom:4px">state object:</div>' +
+        '<pre style="background:#050709;padding:8px;border-radius:6px;color:#e8f0fe;font-size:9px;overflow:auto;max-height:80px;margin-bottom:12px">' + stateStr + '</pre>' +
+        '<div style="color:#7a8fa6;margin-bottom:4px">Statistics: <span style="color:#e8f0fe">' + statsInfo + '</span></div>' +
+        '<div style="color:#7a8fa6">Events: <span style="color:#e8f0fe">' + events.length + ' events loaded</span></div>' +
+        '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button onclick="console.log(JSON.stringify(state._rawMatchDebug,null,2))" style="background:#121820;border:1px solid #1a2332;color:#7a8fa6;padding:4px 10px;border-radius:6px;font-size:10px;cursor:pointer">Log match JSON</button>' +
+        '<button onclick="console.log(JSON.stringify(state._rawStatsDebug,null,2))" style="background:#121820;border:1px solid #1a2332;color:#7a8fa6;padding:4px 10px;border-radius:6px;font-size:10px;cursor:pointer">Log stats JSON</button>' +
+        '<button onclick="document.getElementById(\'rawDebugPanel\').style.display=\'none\'" style="background:#121820;border:1px solid #1a2332;color:#7a8fa6;padding:4px 10px;border-radius:6px;font-size:10px;cursor:pointer">Dismiss</button>' +
+        '</div></div>';
+}
+
+// ── SCORE / STAT EXTRACTORS ───────────────────────────────────────────────────
+function extractScore(match) {
+    var sc = match.state && match.state.score;
+    if (sc && typeof sc.current === 'string') {
+        var parts = sc.current.split('-').map(function(p) { return p.trim(); });
+        if (parts.length === 2 && parts[0] !== '' && parts[1] !== '') {
+            return { home: parseInt(parts[0], 10), away: parseInt(parts[1], 10) };
+        }
+    }
+    var candidates = [
+        sc && sc.home != null ? sc : null,
+        match.score || null,
+        match.goals || null,
+        match.result || null,
+        { home: match.homeScore, away: match.awayScore },
+        { home: match.state ? match.state.homeScore : undefined, away: match.state ? match.state.awayScore : undefined },
+        { home: match.homeTeam ? match.homeTeam.score : undefined, away: match.awayTeam ? match.awayTeam.score : undefined },
+        { home: match.state && match.state.goals ? match.state.goals.home : undefined, away: match.state && match.state.goals ? match.state.goals.away : undefined },
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
+        if (c && c.home != null && c.away != null) return c;
+    }
+    return null;
+}
+
+function extractStats(match, isHome) {
+    var stats = match.statistics || [];
+    var home = match.homeTeam || {};
+    var homeStat, teamStat;
+
+    if (isHome) {
+        teamStat = stats.find(function(s) {
+            return (s.team && s.team.id && s.team.id === home.id) ||
+                   (s.team && s.team.name && s.team.name === home.name) ||
+                   s.isHome === true;
+        });
+        if (!teamStat) teamStat = stats[0];
+    } else {
+        homeStat = stats.find(function(s) {
+            return (s.team && s.team.id && s.team.id === home.id) ||
+                   (s.team && s.team.name && s.team.name === home.name) ||
+                   s.isHome === true;
+        });
+        teamStat = stats.find(function(s) { return s !== homeStat && s.team; });
+        if (!teamStat) teamStat = stats[1];
+    }
+
+    return (teamStat && (teamStat.statistics || teamStat.stats)) || [];
+}
+
+function getStatValue(arr) {
+    var typeNames = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0; i < typeNames.length; i++) {
+        var t = typeNames[i];
+        var s = arr.find(function(x) {
+            var name = x.type || x.name || x.displayName || '';
+            return name === t || name.toLowerCase() === t.toLowerCase();
+        });
+        if (s != null) return s.value != null ? s.value : (s.val != null ? s.val : (s.count != null ? s.count : null));
+    }
+    return null;
+}
+
+// ── MATCH DATA PREVIEW ────────────────────────────────────────────────────────
+function switchDataTab(tab) {
+    ['events','stats','info'].forEach(function(t) {
+        var btn = document.getElementById('dtab-' + t);
+        var panel = document.getElementById('dpanel-' + t);
+        if (!btn || !panel) return;
+        var active = t === tab;
+        btn.style.color = active ? 'var(--accent)' : 'var(--text3)';
+        btn.style.borderBottom = active ? '2px solid var(--accent)' : '2px solid transparent';
+        panel.style.display = active ? '' : 'none';
+    });
+}
+
+function renderMatchDataPreview(match, loading) {
+    var container = document.getElementById('matchDataPreview');
+    if (!container) return;
+
+    if (loading) {
+        container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text3);font-size:12px"><span class="spinner"></span> Fetching full match data…</div>';
+        container.style.display = 'block';
+        return;
+    }
+    if (!match) { container.style.display = 'none'; return; }
+
+    var home = match.homeTeam || {};
+    var away = match.awayTeam || {};
+    var score = extractScore(match);
+    var events = match.events || [];
+    var desc = (match.state && match.state.description) ? match.state.description : '';
+
+    var homeStat = extractStats(match, true);
+    var awayStat = extractStats(match, false);
+
+    var eventIcons = {
+        'Goal':'⚽','Own Goal':'🔴','Penalty':'🎯','Missed Penalty':'❌',
+        'Yellow Card':'🟨','Red Card':'🟥','Substitution':'🔄',
+        'VAR Goal Confirmed':'✅','VAR Goal Cancelled':'🚫','VAR Penalty':'📺',
+    };
+
+    var eventsHtml = events.length ? events.map(function(e) {
+        var isHome = e.team && (e.team.name === home.name || e.team.id === home.id);
+        var icon = eventIcons[e.type] || eventIcons[e.incident] || '•';
+        var timeStr = (e.time != null ? e.time : (e.minute != null ? e.minute : '')) + "'";
+        var playerName = e.player || (e.player && e.player.name) || (e.mainPlayer && e.mainPlayer.name) || '';
+        var assistName = e.assist || (e.assist && e.assist.name) || (e.secondPlayer && e.secondPlayer.name) || '';
+        var subName = e.substituted || (e.substitutedPlayer && e.substitutedPlayer.name) || '';
+        var detail = [playerName, assistName ? '('+assistName+')' : '', subName ? '→ '+subName : ''].filter(Boolean).join(' ');
+        return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #1a2332">' +
+            '<span style="font-family:monospace;font-size:10px;color:#3d5068;width:30px;flex-shrink:0">' + timeStr + '</span>' +
+            '<span style="font-size:13px;flex-shrink:0">' + icon + '</span>' +
+            '<span style="flex:1;font-size:11px;color:#e8f0fe">' + detail + '</span>' +
+            '<span style="font-size:10px;color:' + (isHome ? '#0080ff' : '#ff4757') + '">●</span>' +
+            '</div>';
+    }).join('') : '<div style="font-size:11px;color:#3d5068;padding:8px 0">No events data</div>';
+
+    var statDefs = [
+        ['Possession','Ball Possession','Possession'],
+        ['Shots on Target','Shots on Goal','Shots On Goal','On Target'],
+        ['Total Shots','Total Shots','Shots Total'],
+        ['Corners','Corner Kicks','Corners'],
+        ['Fouls','Fouls','Fouls Committed'],
+        ['Yellow Cards','Yellow Cards'],
+        ['Offsides','Offsides'],
+        ['Passes','Passes Accurate','Accurate Passes'],
+        ['xG','Expected Goals'],
+        ['Saves','Goalkeeper Saves','Saves'],
+    ];
+
+    var statRows = statDefs.map(function(def) {
+        var label = def[0];
+        var keys = def.slice(1);
+        return { label: label, hv: getStatValue.apply(null, [homeStat].concat(keys)), av: getStatValue.apply(null, [awayStat].concat(keys)) };
+    }).filter(function(r) { return r.hv != null || r.av != null; });
+
+    var statsHtml = statRows.length ? statRows.map(function(r) {
+        var hNum = parseFloat(String(r.hv || 0).replace('%',''));
+        var aNum = parseFloat(String(r.av || 0).replace('%',''));
+        var total = hNum + aNum || 1;
+        var hPct = Math.round(hNum / total * 100);
+        return '<div style="margin-bottom:8px">' +
+            '<div style="display:flex;justify-content:space-between;margin-bottom:3px">' +
+            '<span style="font-family:monospace;font-size:10px;color:#0080ff">' + (r.hv != null ? r.hv : '—') + '</span>' +
+            '<span style="font-size:9px;color:#3d5068">' + r.label + '</span>' +
+            '<span style="font-family:monospace;font-size:10px;color:#ff4757">' + (r.av != null ? r.av : '—') + '</span>' +
+            '</div>' +
+            '<div style="height:4px;background:#121820;border-radius:3px;display:flex;overflow:hidden">' +
+            '<div style="width:' + hPct + '%;background:#0080ff;border-radius:3px 0 0 3px"></div>' +
+            '<div style="flex:1;background:#ff4757;border-radius:0 3px 3px 0"></div>' +
+            '</div></div>';
+    }).join('') : '<div style="font-size:11px;color:#3d5068">No statistics available</div>';
+
+    container.style.display = 'block';
+
+    var descColor = desc.toLowerCase().includes('half') || desc.toLowerCase().includes('progress')
+        ? '#ff4757' : desc.toLowerCase().includes('finish') ? '#00e5a0' : '#ffd32a';
+
+    var homeLogoHtml = home.logo
+        ? '<img src="' + home.logo + '" style="width:26px;height:26px;object-fit:contain" onerror="this.style.display=\'none\'">'
+        : '<span style="font-size:11px;font-weight:700;color:#7a8fa6">' + ((home.name||'H')[0]) + '</span>';
+
+    var awayLogoHtml = away.logo
+        ? '<img src="' + away.logo + '" style="width:26px;height:26px;object-fit:contain" onerror="this.style.display=\'none\'">'
+        : '<span style="font-size:11px;font-weight:700;color:#7a8fa6">' + ((away.name||'A')[0]) + '</span>';
+
+    var venueTab = match.venue && match.venue.name
+        ? '<div onclick="switchDataTab(\'info\')" id="dtab-info" style="flex:1;text-align:center;padding:10px;font-size:11px;font-weight:600;cursor:pointer;color:#3d5068;border-bottom:2px solid transparent">Info</div>' : '';
+
+    var venuePanel = match.venue && match.venue.name
+        ? '<div id="dpanel-info" style="padding:12px 16px;display:none;font-size:11px;color:#7a8fa6;line-height:2">' +
+          '<div>🏟 <strong style="color:#e8f0fe">' + match.venue.name + '</strong>' + (match.venue.city ? ', ' + match.venue.city : '') + '</div>' +
+          (match.referee && match.referee.name ? '<div>👔 Referee: <strong style="color:#e8f0fe">' + match.referee.name + '</strong></div>' : '') +
+          '</div>' : '';
+
+    var scoreHtml = score != null
+        ? '<div style="font-family:monospace;font-size:22px;font-weight:700;color:#e8f0fe">' + score.home + ' – ' + score.away + '</div>'
+        : '<div style="font-family:monospace;font-size:13px;color:#3d5068">vs</div>';
+
+    container.innerHTML =
+        '<div style="background:#0c1018;border:1px solid #1a2332;border-radius:14px;overflow:hidden;margin-bottom:16px">' +
+        '<div style="padding:14px 16px;border-bottom:1px solid #1a2332;display:flex;align-items:center;gap:10px">' +
+            '<div style="flex:1;display:flex;align-items:center;gap:8px">' +
+                '<div style="width:32px;height:32px;background:#121820;border:1px solid #1a2332;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden">' + homeLogoHtml + '</div>' +
+                '<span style="font-size:13px;font-weight:700;color:#e8f0fe">' + (home.name||'Home') + '</span>' +
+            '</div>' +
+            '<div style="text-align:center;flex-shrink:0">' + scoreHtml +
+                '<div style="font-size:9px;font-weight:700;color:' + descColor + '">' + (desc || 'Unknown') + '</div>' +
+            '</div>' +
+            '<div style="flex:1;display:flex;align-items:center;gap:8px;justify-content:flex-end">' +
+                '<span style="font-size:13px;font-weight:700;color:#e8f0fe;text-align:right">' + (away.name||'Away') + '</span>' +
+                '<div style="width:32px;height:32px;background:#121820;border:1px solid #1a2332;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden">' + awayLogoHtml + '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div style="display:flex;border-bottom:1px solid #1a2332">' +
+            '<div onclick="switchDataTab(\'events\')" id="dtab-events" style="flex:1;text-align:center;padding:10px;font-size:11px;font-weight:600;cursor:pointer;color:#00e5a0;border-bottom:2px solid #00e5a0">Events</div>' +
+            '<div onclick="switchDataTab(\'stats\')" id="dtab-stats" style="flex:1;text-align:center;padding:10px;font-size:11px;font-weight:600;cursor:pointer;color:#3d5068;border-bottom:2px solid transparent">Statistics</div>' +
+            venueTab +
+        '</div>' +
+        '<div id="dpanel-events" style="padding:12px 16px;max-height:200px;overflow-y:auto">' + eventsHtml + '</div>' +
+        '<div id="dpanel-stats" style="padding:12px 16px;display:none">' + statsHtml + '</div>' +
+        venuePanel +
+        '</div>';
+}
+
+// ── DEMO DATA ─────────────────────────────────────────────────────────────────
+function loadDemoData() {
+    state.matches = generateDemoMatches();
+    renderMatches();
+    document.getElementById('apiKeyBanner').style.display = 'none';
+    showToast('Demo data loaded — 6 sample matches', 'success');
+}
+
+function generateDemoMatches() {
+    return [
+        { id:1001, homeTeam:{name:'Arsenal',logo:''}, awayTeam:{name:'Man City',logo:''}, league:{name:'Premier League'}, state:{description:'Second half',score:{home:2,away:1}}, date:new Date().toISOString() },
+        { id:1002, homeTeam:{name:'Barcelona',logo:''}, awayTeam:{name:'Real Madrid',logo:''}, league:{name:'La Liga'}, state:{description:'Not started',score:{home:null,away:null}}, date:new Date(Date.now()+3*3600000).toISOString() },
+        { id:1003, homeTeam:{name:'PSG',logo:''}, awayTeam:{name:'Lyon',logo:''}, league:{name:'Ligue 1'}, state:{description:'Finished',score:{home:3,away:0}}, date:new Date(Date.now()-2*3600000).toISOString() },
+        { id:1004, homeTeam:{name:'Juventus',logo:''}, awayTeam:{name:'AC Milan',logo:''}, league:{name:'Serie A'}, state:{description:'First half',score:{home:1,away:1}}, date:new Date().toISOString() },
+        { id:1005, homeTeam:{name:'Bayern Munich',logo:''}, awayTeam:{name:'Dortmund',logo:''}, league:{name:'Bundesliga'}, state:{description:'Not started',score:{home:null,away:null}}, date:new Date(Date.now()+5*3600000).toISOString() },
+        { id:1006, homeTeam:{name:'Chelsea',logo:''}, awayTeam:{name:'Liverpool',logo:''}, league:{name:'Premier League'}, state:{description:'Finished after extra time',score:{home:2,away:2}}, date:new Date(Date.now()-4*3600000).toISOString() },
+    ];
+}
+
+// ── TEMPLATE ──────────────────────────────────────────────────────────────────
+function selectTemplate(name) {
+    state.selectedTemplate = name;
+    document.querySelectorAll('.template-card').forEach(function(c) { c.classList.remove('selected'); });
+    document.getElementById('tpl-' + name).classList.add('selected');
+    checkGenerateReady();
+}
+
+function checkGenerateReady() {
+    var ready = !!(state.selectedMatch && state.selectedTemplate);
+    document.getElementById('generateBtn').disabled = !ready;
+    document.getElementById('pngBtn').disabled = !ready;
+}
+
+function clearSelection() {
+    state.selectedMatch = null;
+    state.selectedTemplate = null;
+    document.querySelectorAll('.match-card').forEach(function(c) { c.classList.remove('selected'); });
+    document.querySelectorAll('.template-card').forEach(function(c) { c.classList.remove('selected'); });
+    document.getElementById('buildSection').style.display = 'none';
+    document.getElementById('generateBtn').disabled = true;
+    document.getElementById('pngBtn').disabled = true;
+}
+
+// ── BRANDING ──────────────────────────────────────────────────────────────────
+function loadBrandingUI() {
+    var b = state.branding;
+    if (b.name) document.getElementById('bBrandName').value = b.name;
+    if (b.handle) document.getElementById('bHandle').value = b.handle;
+    if (b.tagline) document.getElementById('bTagline').value = b.tagline;
+    if (b.primaryColor) document.getElementById('bPrimaryColor').value = b.primaryColor;
+    if (b.secondaryColor) document.getElementById('bSecondaryColor').value = b.secondaryColor;
+    if (b.website) document.getElementById('bWebsite').value = b.website;
+    syncBrandingToInline();
+}
+
+function syncBrandingToInline() {
+    var b = state.branding;
+    if (b.handle) document.getElementById('bHandleInline').value = b.handle;
+    if (b.tagline) document.getElementById('bTaglineInline').value = b.tagline;
+    if (b.primaryColor) document.getElementById('bColorInline').value = b.primaryColor;
+}
+
+function saveBranding() {
+    state.branding = {
+        name: document.getElementById('bBrandName').value,
+        handle: document.getElementById('bHandle').value,
+        tagline: document.getElementById('bTagline').value,
+        primaryColor: document.getElementById('bPrimaryColor').value,
+        secondaryColor: document.getElementById('bSecondaryColor').value,
+        website: document.getElementById('bWebsite').value,
+    };
+    localStorage.setItem('fp_branding', JSON.stringify(state.branding));
+    syncBrandingToInline();
+    showToast('Branding saved!', 'success');
+}
+
+function getActiveBranding() {
+    return {
+        handle: document.getElementById('bHandleInline').value || state.branding.handle || '@scorexifootball',
+        tagline: document.getElementById('bTaglineInline').value || state.branding.tagline || 'Updated just now',
+        color: document.getElementById('bColorInline').value || state.branding.primaryColor || '#60a5fa',
+        name: state.branding.name || '',
+    };
+}
+
+// ── CARD BUILDER ──────────────────────────────────────────────────────────────
+function getTeamLogoHtml(team, size) {
+    size = size || 48;
+    if (team && team.logo) {
+        return '<img src="' + team.logo + '" style="width:' + size + 'px;height:' + size + 'px;object-fit:contain;" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">' +
+               '<div style="display:none;width:' + size + 'px;height:' + size + 'px;border-radius:' + Math.round(size*0.2) + 'px;background:#1a2332;align-items:center;justify-content:center;font-size:' + Math.round(size*0.38) + 'px;font-weight:800;color:#7a8fa6">' + ((team.name||'?')[0]) + '</div>';
+    }
+    return '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:' + Math.round(size*0.2) + 'px;background:#1a2332;display:flex;align-items:center;justify-content:center;font-size:' + Math.round(size*0.38) + 'px;font-weight:800;color:#7a8fa6">' + ((team && team.name ? team.name[0] : '?')) + '</div>';
+}
+
+function buildCardHTML(match, template, branding) {
+    var home = match.homeTeam || {};
+    var away = match.awayTeam || {};
+    var league = match.league || {};
+    var score = extractScore(match);
+    var homeScore = score ? score.home : 0;
+    var awayScore = score ? score.away : 0;
+    var events = match.events || [];
+    var accentColor = branding.color || '#00e5a0';
+    var kickoff = match.date ? new Date(match.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '--:--';
+    var dateStr = match.date ? new Date(match.date).toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'}) : '';
+
+    var brandingFooter = '<div class="card-footer">' +
+        '<div><span class="social-tag">' + (branding.handle || '@scorexifootball') + '</span><span class="social-dot">•</span><span class="social-tag">#' + ((league.name || 'FOOTBALL').replace(/\s+/g,'').toUpperCase().slice(0,12)) + '</span></div>' +
+        '<div class="timestamp"><span class="time-icon">⚡</span><span class="time-text">' + (branding.tagline || 'Updated just now') + '</span></div>' +
+        '</div>';
+
+    if (template === 'upcoming') return buildUpcomingCard(match, branding, brandingFooter, kickoff, dateStr, league, home, away, accentColor);
+    if (template === 'live') return buildLiveCard(match, branding, brandingFooter, home, away, homeScore, awayScore, events, league, accentColor);
+    if (template === 'fulltime') return buildFulltimeCard(match, branding, brandingFooter, home, away, homeScore, awayScore, events, league, accentColor);
+    if (template === 'stats') return buildStatsCard(match, branding, brandingFooter, home, away, homeScore, awayScore, league, accentColor);
+    return '<html><body style="background:#050709;color:#e8f0fe;font-family:sans-serif;padding:20px">Unknown template</body></html>';
+}
+
+function cardShell(bodyContent, accentColor) {
+    return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+        '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
+        '<style>' +
+        '*{margin:0;padding:0;box-sizing:border-box}' +
+        'body{background:#121826;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;font-family:"Plus Jakarta Sans",sans-serif}' +
+        '.card{background:#1a2130;border-radius:20px;padding:32px 28px;width:100%;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,.4)}' +
+        '.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}' +
+        '.league-name{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#8892a8}' +
+        '.status-badge{border-radius:20px;padding:4px 14px;font-size:10px;font-weight:700;letter-spacing:.3px}' +
+        '.scoreboard{display:flex;align-items:center;gap:12px;margin-bottom:24px}' +
+        '.team-container{flex:1;text-align:center;min-width:0}' +
+        '.team-badge{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;margin-bottom:10px}' +
+        '.team-badge img{width:100%;height:100%;object-fit:contain}' +
+        '.team-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#a0aec0}' +
+        '.team-name{font-size:15px;font-weight:700;color:#e8edf5;letter-spacing:.2px;overflow-wrap:anywhere}' +
+        '.score-wrapper{text-align:center;flex-shrink:0;display:flex;align-items:baseline;gap:6px}' +
+        '.score-number{font-size:46px;font-weight:800;color:#f0f4ff;letter-spacing:1px;min-width:38px;background:transparent}' +
+        '.score-divider{color:#4a5568;font-size:30px;font-weight:300}' +
+        '.kickoff{font-size:27px;font-weight:800;color:#f0f4ff;line-height:1}' +
+        '.kickoff-sub{font-size:10px;color:#6b7a93;margin-top:6px;font-weight:600}' +
+        '.match-details{margin-top:24px;padding-top:20px;border-top:1px solid #2a3346;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}' +
+        '.detail-item{text-align:center}.detail-label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#6b7a93;margin-bottom:4px;font-weight:600}' +
+        '.detail-value{font-size:13px;font-weight:600;color:#c8d2e0;overflow-wrap:anywhere}' +
+        '.stats-bar{margin-top:20px;padding-top:18px;border-top:1px solid #2a3346}' +
+        '.stat{display:flex;align-items:center;gap:12px;margin-bottom:11px}.stat:last-child{margin-bottom:0}' +
+        '.stat-label{font-size:10px;font-weight:600;color:#6b7a93;min-width:82px;text-align:right}' +
+        '.stat-track{flex:1;height:4px;background:#2a3346;border-radius:4px;overflow:hidden;display:flex}' +
+        '.stat-fill-home{height:100%;background:#60a5fa}.stat-fill-away{height:100%;background:#fb7185}' +
+        '.stat-values{font-size:10px;font-weight:600;color:#8892a8;min-width:72px;text-align:left}' +
+        '.events{margin-top:20px;padding-top:18px;border-top:1px solid #2a3346}' +
+        '.event-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #252e40;font-size:10px;color:#c8d2e0}.event-row:last-child{border-bottom:0}' +
+        '.event-time{color:#6b7a93;min-width:30px}.event-icon{font-size:13px}.event-player{flex:1}' +
+        '.card-footer{margin-top:22px;padding-top:16px;border-top:1px solid #2a3346;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}' +
+        '.social-tag{font-size:11px;font-weight:600;color:#60a5fa;opacity:.85}.social-dot{color:#3d4a60;font-size:6px;margin:0 4px}' +
+        '.timestamp{display:flex;align-items:center;gap:6px}.time-icon{font-size:12px}.time-text{font-size:10px;color:#6b7a93;font-weight:400}' +
+        '@media(max-width:420px){.card{padding:20px 16px}.team-badge{width:48px;height:48px}.team-name{font-size:13px}.score-number{font-size:36px;min-width:30px}.score-divider{font-size:24px}.kickoff{font-size:22px}.match-details{grid-template-columns:1fr;gap:8px}.stat{gap:8px}.stat-label{min-width:62px;font-size:9px}.stat-values{min-width:58px;font-size:9px}.card-footer{flex-direction:column;align-items:flex-start;gap:4px}}' +
+        '</style></head><body>' + bodyContent + '</body></html>';
+}
+
+function buildUpcomingCard(match, branding, brandingFooter, kickoff, dateStr, league, home, away, accentColor) {
+    var venue = match.venue && match.venue.name ? match.venue.name : 'TBC';
+    var referee = match.referee && match.referee.name ? match.referee.name : 'TBC';
+    var body = '<div class="card">' +
+        '<div class="card-header"><span class="league-name">' + (league.name || 'Football') + '</span>' +
+        '<span class="status-badge" style="background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.2);color:#60a5fa">UPCOMING</span></div>' +
+        '<div class="scoreboard">' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(home,64) + '</div><div class="team-name">' + (home.name || 'Home') + '</div></div>' +
+            '<div style="text-align:center;flex-shrink:0"><div class="kickoff">' + kickoff + '</div><div class="kickoff-sub">' + dateStr + '</div></div>' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(away,64) + '</div><div class="team-name">' + (away.name || 'Away') + '</div></div>' +
+        '</div>' +
+        '<div class="match-details">' +
+            '<div class="detail-item"><span class="detail-label">Stadium</span><span class="detail-value">' + venue + '</span></div>' +
+            '<div class="detail-item"><span class="detail-label">Kickoff</span><span class="detail-value">' + kickoff + '</span></div>' +
+            '<div class="detail-item"><span class="detail-label">Referee</span><span class="detail-value">' + referee + '</span></div>' +
+        '</div>' +
+        brandingFooter +
+    '</div>';
+    return cardShell(body, accentColor);
+}
+
+function buildLiveCard(match, branding, brandingFooter, home, away, homeScore, awayScore, events, league, accentColor) {
+    var minute = (match.state && match.state.minute) ? match.state.minute + "'" : (match.state && match.state.description ? match.state.description : 'LIVE');
+    var venue = match.venue && match.venue.name ? match.venue.name : '—';
+    var referee = match.referee && match.referee.name ? match.referee.name : '—';
+    var homeStat = extractStats(match, true);
+    var awayStat = extractStats(match, false);
+    var hp = getStatValue(homeStat, 'Ball Possession', 'Possession');
+    var ap = getStatValue(awayStat, 'Ball Possession', 'Possession');
+    var hNum = parseFloat(String(hp || 0).replace('%',''));
+    var aNum = parseFloat(String(ap || 0).replace('%',''));
+    var total = hNum + aNum || 100;
+    var hPct = Math.round(hNum / total * 100);
+    var evtIcons = {'Goal':'⚽','Own Goal':'🔴','Yellow Card':'🟨','Red Card':'🟥','Substitution':'🔄','Penalty':'🎯'};
+    var eventsHtml = events.slice(-4).reverse().map(function(e) {
+        var player = e.player || (e.mainPlayer && e.mainPlayer.name) || '';
+        var time = (e.time || e.minute || '') + "'";
+        return '<div class="event-row"><span class="event-time">' + time + '</span><span class="event-icon">' + (evtIcons[e.type] || evtIcons[e.incident] || '•') + '</span><span class="event-player">' + player + '</span></div>';
+    }).join('');
+
+    var body = '<div class="card">' +
+        '<div class="card-header"><span class="league-name">' + (league.name || 'Football') + '</span>' +
+        '<span class="status-badge" style="background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.2);color:#fb7185">● LIVE · ' + minute + '</span></div>' +
+        '<div class="scoreboard">' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(home,64) + '</div><div class="team-name">' + (home.name || 'Home') + '</div></div>' +
+            '<div class="score-wrapper"><span class="score-number">' + homeScore + '</span><span class="score-divider">–</span><span class="score-number">' + awayScore + '</span></div>' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(away,64) + '</div><div class="team-name">' + (away.name || 'Away') + '</div></div>' +
+        '</div>' +
+        '<div class="match-details">' +
+            '<div class="detail-item"><span class="detail-label">Stadium</span><span class="detail-value">' + venue + '</span></div>' +
+            '<div class="detail-item"><span class="detail-label">Status</span><span class="detail-value">' + minute + '</span></div>' +
+            '<div class="detail-item"><span class="detail-label">Referee</span><span class="detail-value">' + referee + '</span></div>' +
+        '</div>' +
+        ((hp != null || ap != null) ? '<div class="stats-bar"><div class="stat"><span class="stat-label">Possession</span><div class="stat-track"><div class="stat-fill-home" style="width:' + hPct + '%"></div><div class="stat-fill-away" style="flex:1"></div></div><span class="stat-values">' + (hp != null ? hp : '—') + ' – ' + (ap != null ? ap : '—') + '</span></div></div>' : '') +
+        (eventsHtml ? '<div class="events">' + eventsHtml + '</div>' : '') +
+        brandingFooter +
+    '</div>';
+    return cardShell(body, accentColor);
+}
+
+function buildFulltimeCard(match, branding, brandingFooter, home, away, homeScore, awayScore, events, league, accentColor) {
+    var venue = match.venue && match.venue.name ? match.venue.name : '—';
+    var referee = match.referee && match.referee.name ? match.referee.name : '—';
+    var attendance = match.attendance != null ? match.attendance : (match.venue && match.venue.capacity ? match.venue.capacity : '—');
+    var homeStat = extractStats(match, true);
+    var awayStat = extractStats(match, false);
+    var hp = getStatValue(homeStat, 'Ball Possession', 'Possession');
+    var ap = getStatValue(awayStat, 'Ball Possession', 'Possession');
+    var hNum = parseFloat(String(hp || 0).replace('%',''));
+    var aNum = parseFloat(String(ap || 0).replace('%',''));
+    var total = hNum + aNum || 100;
+    var hPct = Math.round(hNum / total * 100);
+
+    var body = '<div class="card">' +
+        '<div class="card-header"><span class="league-name">' + (league.name || 'Football') + '</span>' +
+        '<span class="status-badge" style="background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.2);color:#34d399">FULL TIME</span></div>' +
+        '<div class="scoreboard">' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(home,64) + '</div><div class="team-name">' + (home.name || 'Home') + '</div></div>' +
+            '<div class="score-wrapper"><span class="score-number">' + homeScore + '</span><span class="score-divider">–</span><span class="score-number">' + awayScore + '</span></div>' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(away,64) + '</div><div class="team-name">' + (away.name || 'Away') + '</div></div>' +
+        '</div>' +
+        '<div class="match-details">' +
+            '<div class="detail-item"><span class="detail-label">Stadium</span><span class="detail-value">' + venue + '</span></div>' +
+            '<div class="detail-item"><span class="detail-label">Attendance</span><span class="detail-value">' + attendance + '</span></div>' +
+            '<div class="detail-item"><span class="detail-label">Referee</span><span class="detail-value">' + referee + '</span></div>' +
+        '</div>' +
+        ((hp != null || ap != null) ? '<div class="stats-bar"><div class="stat"><span class="stat-label">Possession</span><div class="stat-track"><div class="stat-fill-home" style="width:' + hPct + '%"></div><div class="stat-fill-away" style="flex:1"></div></div><span class="stat-values">' + (hp != null ? hp : '—') + ' – ' + (ap != null ? ap : '—') + '</span></div></div>' : '') +
+        brandingFooter +
+    '</div>';
+    return cardShell(body, accentColor);
+}
+
+function buildStatsCard(match, branding, brandingFooter, home, away, homeScore, awayScore, league, accentColor) {
+    var homeStat = extractStats(match, true);
+    var awayStat = extractStats(match, false);
+    var statDefs = [
+        ['Possession','Ball Possession','Possession'],
+        ['Shots on Target','Shots on Goal','Shots On Goal','On Target'],
+        ['Total Shots','Total Shots','Shots Total'],
+        ['Corners','Corner Kicks','Corners'],
+        ['Fouls','Fouls','Fouls Committed'],
+        ['Yellow Cards','Yellow Cards'],
+        ['Offsides','Offsides'],
+        ['Passes','Passes Accurate','Accurate Passes'],
+        ['Saves','Goalkeeper Saves','Saves'],
+        ['xG','Expected Goals']
+    ];
+    var rows = statDefs.map(function(def) {
+        var label = def[0], keys = def.slice(1);
+        var hv = getStatValue.apply(null, [homeStat].concat(keys));
+        var av = getStatValue.apply(null, [awayStat].concat(keys));
+        return {label:label,hv:hv,av:av};
+    }).filter(function(r){ return r.hv != null || r.av != null; });
+
+    var statsRows = rows.map(function(r) {
+        var hNum = parseFloat(String(r.hv || 0).replace('%',''));
+        var aNum = parseFloat(String(r.av || 0).replace('%',''));
+        var total = hNum + aNum || 1;
+        var hPct = Math.round(hNum / total * 100);
+        return '<div class="stat"><span class="stat-label">' + r.label + '</span><div class="stat-track"><div class="stat-fill-home" style="width:' + hPct + '%"></div><div class="stat-fill-away" style="flex:1"></div></div><span class="stat-values">' + (r.hv != null ? r.hv : '—') + ' – ' + (r.av != null ? r.av : '—') + '</span></div>';
+    }).join('');
+
+    var body = '<div class="card">' +
+        '<div class="card-header"><span class="league-name">' + (league.name || 'Football') + '</span>' +
+        '<span class="status-badge" style="background:rgba(96,165,250,.12);border:1px solid rgba(96,165,250,.2);color:#60a5fa">MATCH STATS</span></div>' +
+        '<div class="scoreboard">' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(home,64) + '</div><div class="team-name">' + (home.name || 'Home') + '</div></div>' +
+            '<div class="score-wrapper"><span class="score-number">' + homeScore + '</span><span class="score-divider">–</span><span class="score-number">' + awayScore + '</span></div>' +
+            '<div class="team-container"><div class="team-badge">' + getTeamLogoHtml(away,64) + '</div><div class="team-name">' + (away.name || 'Away') + '</div></div>' +
+        '</div>' +
+        (statsRows ? '<div class="stats-bar">' + statsRows + '</div>' : '<div class="stats-bar"><div style="text-align:center;color:#6b7a93;font-size:11px">No statistics available</div></div>') +
+        brandingFooter +
+    '</div>';
+    return cardShell(body, accentColor);
+}
+
+function openPreview() {
+    if (!state.selectedMatch || !state.selectedTemplate) return;
+    var branding = getActiveBranding();
+    currentCardHTML = buildCardHTML(state.selectedMatch, state.selectedTemplate, branding);
+
+    var iframe = document.getElementById('previewIframe');
+    iframe.srcdoc = currentCardHTML;
+
+    var labels = {upcoming:'Match Preview',live:'Live Score',fulltime:'Full Time Result',stats:'Match Stats'};
+    document.getElementById('modalTitle').textContent = labels[state.selectedTemplate] || 'Preview';
+    document.getElementById('previewModal').classList.add('open');
+
+    addToHistory(state.selectedMatch, state.selectedTemplate, branding);
+
+    state.generatedCount++;
+    localStorage.setItem('fp_gencount', state.generatedCount);
+    updateCounters();
+}
+
+function closePreview() {
+    document.getElementById('previewModal').classList.remove('open');
+}
+
+function downloadCard() {
+    if (!currentCardHTML) return;
+    var m = state.selectedMatch;
+    var filename = ((m.homeTeam && m.homeTeam.name ? m.homeTeam.name : 'home').replace(/\s/g,'_')) +
+        '_vs_' + ((m.awayTeam && m.awayTeam.name ? m.awayTeam.name : 'away').replace(/\s/g,'_')) +
+        '_' + state.selectedTemplate + '.html';
+    var blob = new Blob([currentCardHTML], {type:'text/html'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    state.downloadCount++;
+    localStorage.setItem('fp_dlcount', state.downloadCount);
+    updateCounters();
+    showToast('HTML card downloaded!', 'success');
+}
+
+// ── PNG EXPORT ────────────────────────────────────────────────────────────────
+let pngRenderContainer = null;
+
+function getPngRenderContainer() {
+    if (!pngRenderContainer) {
+        pngRenderContainer = document.createElement('div');
+        pngRenderContainer.id = 'png-render-container';
+        pngRenderContainer.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:540px;visibility:hidden;pointer-events:none;';
+        document.body.appendChild(pngRenderContainer);
+    }
+    return pngRenderContainer;
+}
+
+function exportAsPNG() {
+    if (!state.selectedMatch || !state.selectedTemplate) {
+        showToast('Select a match and template first', 'error');
+        return;
+    }
+    const btn = document.getElementById('pngBtn');
+    if (btn) { 
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="spinner"></span> Generating…'; 
+    }
+    showToast('Generating PNG…', 'success');
+
+    const branding = getActiveBranding();
+    const html = buildCardHTML(state.selectedMatch, state.selectedTemplate, branding);
+    const matchRef = state.selectedMatch;
+    const tplRef = state.selectedTemplate;
+
+    _renderToPNG(html, function(canvas) {
+        _downloadCanvas(canvas, matchRef, tplRef);
+        if (btn) { 
+            btn.disabled = false; 
+            btn.innerHTML = '<i class="fas fa-camera"></i> Export as PNG'; 
+        }
+    }, function(err) {
+        console.error('PNG error:', err);
+        showToast('PNG failed: ' + (err ? err.message || err : 'unknown error'), 'error');
+        if (btn) { 
+            btn.disabled = false; 
+            btn.innerHTML = '<i class="fas fa-camera"></i> Export as PNG'; 
+        }
+    });
+}
+
+function downloadPNGFromPreview() {
+    if (!currentCardHTML) { 
+        showToast('No card to export', 'error'); 
+        return; 
+    }
+    const btn = document.getElementById('downloadPngBtn');
+    if (btn) { 
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="spinner"></span> Generating…'; 
+    }
+    showToast('Generating PNG…', 'success');
+
+    const matchRef = state.selectedMatch;
+    const tplRef = state.selectedTemplate;
+
+    _renderToPNG(currentCardHTML, function(canvas) {
+        _downloadCanvas(canvas, matchRef, tplRef);
+        if (btn) { 
+            btn.disabled = false; 
+            btn.innerHTML = '<i class="fas fa-camera"></i> Download PNG'; 
+        }
+    }, function(err) {
+        console.error('PNG error:', err);
+        showToast('PNG failed: ' + (err ? err.message || err : 'unknown error'), 'error');
+        if (btn) { 
+            btn.disabled = false; 
+            btn.innerHTML = '<i class="fas fa-camera"></i> Download PNG'; 
+        }
+    });
+}
+
+function _renderToPNG(html, onSuccess, onError) {
+    const container = getPngRenderContainer();
+    container.innerHTML = '';
+    container.style.visibility = 'hidden';
+    
+    const wrapper = document.createElement('div');
+    wrapper.className = 'png-render-wrapper';
+    wrapper.style.cssText = 'width:540px;background:#080c10;';
+    
+    const tempIframe = document.createElement('iframe');
+    tempIframe.style.cssText = 'width:540px;height:800px;border:none;';
+    tempIframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+    
+    wrapper.appendChild(tempIframe);
+    container.appendChild(wrapper);
+    container.style.visibility = 'visible';
+    
+    const iframeDoc = tempIframe.contentDocument || tempIframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+    
+    let loadTimeout;
+    const maxWait = 6000;
+    
+    const cleanup = () => {
+        if (loadTimeout) clearTimeout(loadTimeout);
+        container.style.visibility = 'hidden';
+        setTimeout(() => { container.innerHTML = ''; }, 100);
+    };
+    
+    const attemptCapture = () => {
+        const cardElement = iframeDoc.querySelector('.card');
+        if (!cardElement) {
+            loadTimeout = setTimeout(attemptCapture, 100);
+            return;
+        }
+        
+        const images = cardElement.querySelectorAll('img');
+        const imagePromises = Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise(resolve => {
+                img.onload = resolve;
+                img.onerror = resolve;
+                setTimeout(resolve, 1000);
+            });
+        });
+        
+        Promise.all(imagePromises).then(() => {
+            setTimeout(() => {
+                html2canvas(cardElement, {
+                    scale: 2.5,
+                    backgroundColor: '#080c10',
+                    logging: false,
+                    allowTaint: false,
+                    useCORS: true,
+                    foreignObjectRendering: false,
+                    windowWidth: 540,
+                    windowHeight: cardElement.scrollHeight,
+                }).then(canvas => {
+                    cleanup();
+                    onSuccess(canvas);
+                }).catch(err => {
+                    html2canvas(cardElement, {
+                        scale: 2.5,
+                        backgroundColor: '#080c10',
+                        logging: false,
+                        allowTaint: true,
+                        useCORS: false,
+                        foreignObjectRendering: false,
+                        windowWidth: 540,
+                        windowHeight: cardElement.scrollHeight
+                    }).then(canvas => {
+                        cleanup();
+                        onSuccess(canvas);
+                    }).catch(err2 => {
+                        cleanup();
+                        onError(err2);
+                    });
+                });
+            }, 500);
+        });
+    };
+    
+    loadTimeout = setTimeout(() => {
+        attemptCapture();
+    }, 200);
+    
+    setTimeout(() => {
+        if (container.style.visibility === 'visible') {
+            cleanup();
+            onError(new Error('Timeout waiting for card to render'));
+        }
+    }, maxWait);
+}
+
+function _downloadCanvas(canvas, match, template) {
+    try {
+        const homeName = (match && match.homeTeam && match.homeTeam.name) ? match.homeTeam.name : 'match';
+        const tpl = template || 'card';
+        const filename = homeName.replace(/\s+/g, '_') + '_vs_' + 
+            ((match && match.awayTeam && match.awayTeam.name) ? match.awayTeam.name.replace(/\s+/g, '_') : 'away') + 
+            '_' + tpl + '.png';
+
+        canvas.toBlob(function(blob) {
+            if (!blob) {
+                showToast('Failed to create PNG blob', 'error');
+                return;
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            if (typeof a.download !== 'undefined' && !/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 200);
+                
+                state.downloadCount++;
+                localStorage.setItem('fp_dlcount', state.downloadCount);
+                updateCounters();
+                showToast('PNG saved!', 'success');
+            } else {
+                const newTab = window.open();
+                if (newTab) {
+                    newTab.document.write(`
+                        <html>
+                        <head>
+                            <title>${filename}</title>
+                            <meta name="viewport" content="width=device-width,initial-scale=1">
+                            <style>
+                                body { margin:0; background:#000; display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:system-ui; }
+                                .container { text-align:center; padding:20px; }
+                                p { color:#fff; font-size:14px; margin-bottom:16px; }
+                                img { max-width:100%; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.5); }
+                                .tip { color:#888; font-size:12px; margin-top:12px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <p>⬇️ Long press the image → <strong>Save to Photos</strong></p>
+                                <img src="${canvas.toDataURL('image/png')}" alt="Football Card">
+                                <p class="tip">Tap and hold the image to save</p>
+                            </div>
+                        </body>
+                        </html>
+                    `);
+                    newTab.document.close();
+                    
+                    state.downloadCount++;
+                    localStorage.setItem('fp_dlcount', state.downloadCount);
+                    updateCounters();
+                    showToast('PNG ready — long press to save', 'success');
+                } else {
+                    showToast('Allow popups or use HTML download instead', 'error');
+                }
+            }
+        }, 'image/png');
+        
+    } catch(err) {
+        console.error('Download error:', err);
+        showToast('Save error: ' + err.message, 'error');
+    }
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function addToHistory(match, template, branding) {
+    var home = match.homeTeam || {};
+    var away = match.awayTeam || {};
+    var entry = {
+        id: Date.now(),
+        match: (home.name || 'Home') + ' vs ' + (away.name || 'Away'),
+        template: template,
+        time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}),
+        html: buildCardHTML(match, template, branding),
+        icon: {upcoming:'🗓',live:'🔴',fulltime:'✅',stats:'📊'}[template] || '📋',
+    };
+    state.history.unshift(entry);
+    if (state.history.length > 50) state.history.pop();
+    localStorage.setItem('fp_history', JSON.stringify(state.history.map(function(h) { return {id:h.id,match:h.match,template:h.template,time:h.time,icon:h.icon}; })));
+    document.getElementById('historyBadge').textContent = state.history.length;
+    renderHistory();
+}
+
+function renderHistory() {
+    var list = document.getElementById('historyList');
+    document.getElementById('historyBadge').textContent = state.history.length;
+    if (!state.history.length) {
+        list.innerHTML = '<div class="empty-state"><div class="empty-icon"><i class="fas fa-clock-rotate-left"></i></div><div class="empty-title">No history yet</div><div class="empty-text">Generated cards will appear here.</div></div>';
+        return;
+    }
+    list.innerHTML = state.history.map(function(h) {
+        return '<div class="history-item">' +
+            '<div class="history-thumb">' + h.icon + '</div>' +
+            '<div class="history-info">' +
+                '<div class="history-match">' + h.match + '</div>' +
+                '<div class="history-meta">' + h.template + ' · ' + h.time + '</div>' +
+            '</div>' +
+            (h.html ? '<button class="btn btn-outline" onclick="redownload(' + h.id + ')" style="font-size:11px;padding:6px 12px"><i class="fas fa-download"></i></button>' : '') +
+        '</div>';
+    }).join('');
+}
+
+function redownload(id) {
+    var entry = state.history.find(function(h) { return h.id === id; });
+    if (!entry || !entry.html) { showToast('HTML not available for this entry', 'error'); return; }
+    var blob = new Blob([entry.html], {type:'text/html'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = entry.match.replace(/\s/g,'_') + '_' + entry.template + '.html';
+    a.click();
+    showToast('Re-downloaded!', 'success');
+}
+
+function clearHistory() {
+    state.history = [];
+    localStorage.removeItem('fp_history');
+    renderHistory();
+    showToast('History cleared', 'success');
+}
+
+// ── COUNTERS ──────────────────────────────────────────────────────────────────
+function incrementReq() {
+    state.reqCount++;
+    localStorage.setItem('fp_reqcount', state.reqCount);
+    localStorage.setItem('fp_reqdate', today);
+    updateCounters();
+}
+
+function updateCounters() {
+    document.getElementById('reqCounter').textContent = state.reqCount + ' / 100 req today';
+    document.getElementById('sidebarGenerated').textContent = state.generatedCount;
+    document.getElementById('sidebarDownloaded').textContent = state.downloadCount;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+    var container = document.getElementById('toastContainer');
+    var toast = document.createElement('div');
+    toast.className = 'toast ' + (type || 'success');
+    toast.innerHTML = '<i class="fas fa-' + (type === 'error' ? 'xmark-circle' : 'check-circle') + '"></i> ' + msg;
+    container.appendChild(toast);
+    setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(function() { try { container.removeChild(toast); } catch(e){} }, 320);
+    }, 3000);
+}
+
+// ── API INSPECTOR ─────────────────────────────────────────────────────────────
+function updateInspectorUrl() {
+    var endpoint = document.getElementById('inspectorEndpoint') ? document.getElementById('inspectorEndpoint').value : '';
+    var param = document.getElementById('inspectorParam') ? document.getElementById('inspectorParam').value.trim() : '';
+    var base = 'https://soccer.highlightly.net';
+    var url;
+
+    if (endpoint === '/matches') {
+        url = base + '/matches?date=' + (param || 'YYYY-MM-DD');
+    } else if (endpoint === '/highlights') {
+        url = base + '/highlights?date=' + (param || 'YYYY-MM-DD');
+    } else {
+        url = base + endpoint.replace('{id}', param || '{id}');
+    }
+
+    var preview = document.getElementById('inspectorUrlPreview');
+    if (preview) preview.textContent = 'URL: ' + url;
+}
+
+async function runInspector() {
+    if (!state.apiKey) { showToast('Add an API key first', 'error'); return; }
+    var endpoint = document.getElementById('inspectorEndpoint').value;
+    var param = document.getElementById('inspectorParam').value.trim();
+    var base = 'https://soccer.highlightly.net';
+    var url;
+
+    if (endpoint === '/matches') {
+        url = base + '/matches?date=' + (param || new Date().toISOString().split('T')[0]);
+    } else if (endpoint === '/highlights') {
+        url = base + '/highlights?date=' + (param || new Date().toISOString().split('T')[0]);
+    } else {
+        if (!param) { showToast('Enter a match ID', 'error'); return; }
+        url = base + endpoint.replace('{id}', param);
+    }
+
+    var result = document.getElementById('inspectorResult');
+    result.innerHTML = '<div class="loading-bar"><span class="spinner"></span> Fetching…</div>';
+
+    try {
+        var res = await fetch(url, { headers: { 'x-rapidapi-key': state.apiKey } });
+        incrementReq();
+        var text = await res.text();
+        var formatted;
+        try { formatted = JSON.stringify(JSON.parse(text), null, 2); } catch(e) { formatted = text; }
+
+        result.innerHTML = '<div style="background:#0a0f16;border:1px solid #1a2332;border-radius:14px;overflow:hidden">' +
+            '<div style="padding:10px 14px;border-bottom:1px solid #1a2332;display:flex;justify-content:space-between;align-items:center">' +
+                '<span style="font-family:Space Mono,monospace;font-size:10px;color:' + (res.ok ? '#00e5a0' : '#ff4757') + '">HTTP ' + res.status + ' · ' + url.replace(base,'') + '</span>' +
+                '<button onclick="copyInspectorJson()" style="background:#1a2332;border:1px solid #243040;color:#7a8fa6;padding:4px 10px;border-radius:6px;font-size:10px;cursor:pointer"><i class="fas fa-copy"></i> Copy</button>' +
+            '</div>' +
+            '<pre id="inspectorJson" style="padding:16px;font-family:Space Mono,monospace;font-size:10px;color:#e8f0fe;overflow:auto;max-height:500px;line-height:1.6">' + formatted.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</pre>' +
+        '</div>';
+    } catch(e) {
+        result.innerHTML = '<div class="loading-bar" style="color:#ff4757"><i class="fas fa-xmark-circle"></i> ' + e.message + '</div>';
+    }
+}
+
+function copyInspectorJson() {
+    var el = document.getElementById('inspectorJson');
+    if (!el) return;
+    try {
+        navigator.clipboard.writeText(el.textContent);
+        showToast('Copied to clipboard!', 'success');
+    } catch(e) {
+        showToast('Copy failed', 'error');
+    }
+}
+</script>
+</body>
+</html>
