@@ -2361,12 +2361,118 @@ function _renderToPNG(html, onSuccess, onError) {
     }, maxWait);
 }
 
+// iOS Safari blocks the old async window.open() fallback after html2canvas finishes.
+// Keep PNG generation unchanged; only use a mobile-safe save flow on Apple devices.
+let _pendingPngBlob = null;
+let _pendingPngFilename = '';
+let _pendingPngObjectUrl = '';
+
+function _isIOSDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function _recordPngSave(message) {
+    state.downloadCount++;
+    localStorage.setItem('fp_dlcount', state.downloadCount);
+    updateCounters();
+    showToast(message || 'PNG saved!', 'success');
+}
+
+function _downloadBlobNormally(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        try { document.body.removeChild(a); } catch(e) {}
+        URL.revokeObjectURL(url);
+    }, 1000);
+    _recordPngSave('PNG saved!');
+}
+
+function _closeIOSPngSave() {
+    const modal = document.getElementById('iosPngSaveModal');
+    if (modal) modal.remove();
+    if (_pendingPngObjectUrl) {
+        URL.revokeObjectURL(_pendingPngObjectUrl);
+        _pendingPngObjectUrl = '';
+    }
+    _pendingPngBlob = null;
+    _pendingPngFilename = '';
+}
+
+function _showIOSPngSave(blob, filename) {
+    _pendingPngBlob = blob;
+    _pendingPngFilename = filename;
+    _pendingPngObjectUrl = URL.createObjectURL(blob);
+
+    const old = document.getElementById('iosPngSaveModal');
+    if (old) old.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'iosPngSaveModal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:20000;background:rgba(5,10,18,.94);display:flex;align-items:center;justify-content:center;padding:18px;';
+    modal.innerHTML = `
+        <div style="width:min(520px,100%);max-height:92vh;overflow:auto;background:#172133;border:1px solid #2a3951;border-radius:22px;padding:18px;box-shadow:0 24px 80px rgba(0,0,0,.55);font-family:'Plus Jakarta Sans',sans-serif;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+                <div>
+                    <div style="font-size:16px;font-weight:800;color:#f3f6fb;">PNG ready</div>
+                    <div style="font-size:12px;color:#8392aa;margin-top:3px;">Tap Save PNG, then choose Save Image or Save to Files.</div>
+                </div>
+                <button type="button" onclick="_closeIOSPngSave()" style="width:36px;height:36px;border-radius:10px;border:1px solid #2a3951;background:#111927;color:#9aa8bd;font-size:20px;line-height:1;">×</button>
+            </div>
+            <div style="background:#0d1420;border-radius:16px;padding:10px;overflow:hidden;">
+                <img src="${_pendingPngObjectUrl}" alt="ScoreXI PNG preview" style="display:block;width:100%;height:auto;border-radius:12px;">
+            </div>
+            <button type="button" onclick="_savePendingPngOnIOS()" style="width:100%;margin-top:14px;border:0;border-radius:13px;padding:14px 16px;background:#5aa7ff;color:#08111e;font-size:14px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;">Save PNG</button>
+        </div>`;
+    document.body.appendChild(modal);
+}
+
+function _savePendingPngOnIOS() {
+    if (!_pendingPngBlob) return;
+
+    const blob = _pendingPngBlob;
+    const filename = _pendingPngFilename || 'scorexi-post.png';
+    const file = new File([blob], filename, { type: 'image/png' });
+    const shareData = { files: [file] };
+
+    // This function is called by a real button tap, so iOS gives navigator.share()
+    // the transient user activation it requires.
+    if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+        try {
+            const shareResult = navigator.share(shareData);
+            _recordPngSave('PNG ready — choose Save Image or Save to Files');
+            _closeIOSPngSave();
+            if (shareResult && typeof shareResult.catch === 'function') {
+                shareResult.catch(function(err) {
+                    if (err && err.name !== 'AbortError') {
+                        console.error('iOS share error:', err);
+                        showToast('Could not open the iOS save sheet', 'error');
+                    }
+                });
+            }
+            return;
+        } catch (err) {
+            console.error('iOS share error:', err);
+        }
+    }
+
+    // Last-resort fallback: use the normal download link from the same user tap.
+    _downloadBlobNormally(blob, filename);
+    _closeIOSPngSave();
+}
+
 function _downloadCanvas(canvas, match, template) {
     try {
         const homeName = (match && match.homeTeam && match.homeTeam.name) ? match.homeTeam.name : 'match';
         const tpl = template || 'card';
-        const filename = homeName.replace(/\s+/g, '_') + '_vs_' + 
-            ((match && match.awayTeam && match.awayTeam.name) ? match.awayTeam.name.replace(/\s+/g, '_') : 'away') + 
+        const filename = homeName.replace(/\s+/g, '_') + '_vs_' +
+            ((match && match.awayTeam && match.awayTeam.name) ? match.awayTeam.name.replace(/\s+/g, '_') : 'away') +
             '_' + tpl + '.png';
 
         canvas.toBlob(function(blob) {
@@ -2374,61 +2480,14 @@ function _downloadCanvas(canvas, match, template) {
                 showToast('Failed to create PNG blob', 'error');
                 return;
             }
-            
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            
-            if (typeof a.download !== 'undefined' && !/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => {
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 200);
-                
-                state.downloadCount++;
-                localStorage.setItem('fp_dlcount', state.downloadCount);
-                updateCounters();
-                showToast('PNG saved!', 'success');
+
+            if (_isIOSDevice()) {
+                _showIOSPngSave(blob, filename);
             } else {
-                const newTab = window.open();
-                if (newTab) {
-                    newTab.document.write(`
-                        <html>
-                        <head>
-                            <title>${filename}</title>
-                            <meta name="viewport" content="width=device-width,initial-scale=1">
-                            <style>
-                                body { margin:0; background:#000; display:flex; align-items:center; justify-content:center; min-height:100vh; font-family:system-ui; }
-                                .container { text-align:center; padding:20px; }
-                                p { color:#fff; font-size:14px; margin-bottom:16px; }
-                                img { max-width:100%; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.5); }
-                                .tip { color:#888; font-size:12px; margin-top:12px; }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <p>⬇️ Long press the image → <strong>Save to Photos</strong></p>
-                                <img src="${canvas.toDataURL('image/png')}" alt="Football Card">
-                                <p class="tip">Tap and hold the image to save</p>
-                            </div>
-                        </body>
-                        </html>
-                    `);
-                    newTab.document.close();
-                    
-                    state.downloadCount++;
-                    localStorage.setItem('fp_dlcount', state.downloadCount);
-                    updateCounters();
-                    showToast('PNG ready — long press to save', 'success');
-                } else {
-                    showToast('Allow popups or use HTML download instead', 'error');
-                }
+                _downloadBlobNormally(blob, filename);
             }
         }, 'image/png');
-        
+
     } catch(err) {
         console.error('Download error:', err);
         showToast('Save error: ' + err.message, 'error');
